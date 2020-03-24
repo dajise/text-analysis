@@ -1,6 +1,11 @@
 //import { format } from "date-fns";
 var data = require("./analysisdata");
 
+function isStr(value) {
+  if (value == undefined || value == null || value == "") return false;
+  return true;
+}
+
 /* Check if text is a event or meeting or an appoinment
  *   and return a result base on the request
  * @param text a full string to check
@@ -14,11 +19,11 @@ async function getEventOnResult(text, result) {
   const response = result.topic.response;
 
   if (isResultEvent(response)) {
-    var actualEventDate = dateFromString(text);
+    text = lowercase(text.trim());
 
+    var actualEventDate = dateFromString(text);
     if (!actualEventDate) return "event not found";
 
-    text = text.toLowerCase();
     new_result["Event"] = "Event Found";
 
     new_result["YearMonth"] = parseYearMonth(text);
@@ -31,8 +36,11 @@ async function getEventOnResult(text, result) {
     }
 
     var hour = text.match(/[0-9]{1,2}(?:(?: hour))/);
-    var time = text.match(/[0-9]{1,2}(?:(?::[0-9]{2})|(?: [0-9]{2}))/);
-    new_result["Time"] = hour + ": at: " + time;
+    var time = text.match(/[0-9]{1,2}(?:(?::[0-9]{2})|(?: [0-9]{2}))\b/);
+
+    new_result["Time"] =
+      (hour ? hour + ": at: " : "") +
+      (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
 
     let addressParser = parseAddress(text, result.addresss);
     if (!addressParser && result.curAddress) {
@@ -162,11 +170,14 @@ function dateFromString(stringToParse) {
   //example 3/21/2020
   var date;
   var ssdate = stringToParse.match(
-    /(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})/
+    /(\d{4})\/(\d{1,2})\/(\d{1,2})\s+(\d{2}):(\d{2})/
   );
-  ssdate = !ssdate
-    ? stringToParse.match(/(\d{2,4})\/(\d{2})\/(\d{2,4})/)
-    : ssdate;
+
+  if (!ssdate) ssdate = stringToParse.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  if (!ssdate) ssdate = stringToParse.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+
+  if (!ssdate) ssdate = stringToParse.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (!ssdate) ssdate = stringToParse.match(/(\d{1,2})-(\d{1,2})-(\d{14})/);
 
   if (ssdate) {
     ssdate[2] -= 1;
@@ -186,7 +197,25 @@ function dateFromString(stringToParse) {
   }
 
   //here we check for date
-  //example 3/21/2020
+  //example 2020 feb 4
+  if (!date) {
+    ssdate = stringToParse.match(
+      /\s*,?\s*\d{4}\s*(?:(?:jan|feb)?r?(?:uary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|oct(?:ober)?|(?:sept?|nov|dec)(?:ember)?)\s+\d{1,2}/i
+    );
+    if (ssdate) date = new Date(ssdate);
+  }
+
+  //here we check for date
+  //example feb 4 2020
+  if (!date) {
+    ssdate = stringToParse.match(
+      /\s+\d{1,2}\s*,?\s*\d{4}\b(?:(?:mon)|(?:tues?)|(?:wed(?:nes)?)|(?:thur?s?)|(?:fri)|(?:sat(?:ur)?)|(?:sun))(?:day)?\b[:\-,]?\s*(?:(?:jan|feb)?r?(?:uary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|oct(?:ober)?|(?:sept?|nov|dec)(?:ember)?)/i
+    );
+    if (ssdate) date = new Date(ssdate);
+  }
+
+  //here we check for date
+  //example cot 3 2020
   if (!date) {
     ssdate = stringToParse.match(
       /\b[:\-,]?\s*[a-zA-Z]{3,9}\s+\d{1,2}\s*,?\s*\d{4}/
@@ -229,6 +258,15 @@ function parseNavDate(stringToParse) {
     }
   }
 
+  if (!date) {
+    const monthName = stringToParse.match(
+      /\s*[0-9]{1,2}(?:(?: jan(?:uary)?)|(?: feb(?:uary)?)|(?: mar(?:ch)?)|(?: apr(?:il)?)|(?: may?)|(?: june)|(?: july)|(?: aug(?:ust)?)|(?: oct(?:ober)?)|(?: sept(?:ember)?)|(?: nov(?:ember)?)|(?: dec(?:ember)?))|(?:(?: jan(?:uary)?)|(?: feb(?:uary)?)|(?: mar(?:ch)?)|(?: apr(?:il)?)|(?: may?)|(?: june)|(?: july)|(?: aug(?:ust)?)|(?: oct(?:ober)?)|(?: sept(?:ember)?)|(?: nov(?:ember)?)|(?: dec(?:ember)?))\s*[0-9]{1,2}/
+    );
+    if (monthName && monthName[0]) {
+      date = new Date(monthName + " " + today.getFullYear());
+    }
+  }
+
   if (!date && (cdays = stringToParse.match(/(?:(?: on))\s*[0-9]{1,2}/))) {
     date = new Date(
       today.getFullYear(),
@@ -252,6 +290,12 @@ function parseWeekMonthDate(stringToParse) {
     );
   }
 
+  if (!nwdays || !nwdays[0]) {
+    nwdays = stringToParse.match(
+      /(?:(?: on))\b(?:(?: mon)|(?: tues?)|(?: wed(?:nes)?)|(?: thur?s?)|(?: fri)|(?: sat(?:ur)?)|(?: sun))(?:day)/
+    );
+  }
+
   if (nwdays && nwdays[0]) {
     const dayName = nwdays[0].match(
       /\b(?:(?:mon)|(?:tues?)|(?:wed(?:nes)?)|(?:thur?s?)|(?:fri)|(?:sat(?:ur)?)|(?:sun))(?:day)/
@@ -272,15 +316,6 @@ function parseWeekMonthDate(stringToParse) {
     if (nmdays && nmdays[0]) {
       const monthDay = nmdays[0].match(/[0-9]{1,2}/);
       date = new Date(today.getFullYear(), today.getMonth() + 1, monthDay);
-    }
-  }
-
-  if (!date) {
-    const monthName = stringToParse.match(
-      /\s*[0-9]{1,2}(?:(?: jan(?:uary)?)|(?: feb(?:uary)?)|(?: mar(?:ch)?)|(?: apr(?:il)?)|(?: may?)|(?: june)|(?: july)|(?: aug(?:ust)?)|(?: oct(?:ober)?)|(?: sept(?:ember)?)|(?: nov(?:ember)?)|(?: dec(?:ember)?))|(?:(?: jan(?:uary)?)|(?: feb(?:uary)?)|(?: mar(?:ch)?)|(?: apr(?:il)?)|(?: may?)|(?: june)|(?: july)|(?: aug(?:ust)?)|(?: oct(?:ober)?)|(?: sept(?:ember)?)|(?: nov(?:ember)?)|(?: dec(?:ember)?))\s*[0-9]{1,2}/
-    );
-    if (monthName && monthName[0]) {
-      date = new Date(monthName + " " + today.getFullYear());
     }
   }
   return date;
@@ -314,6 +349,11 @@ function nextDayAndTime(dayOfWeek, hour, minute) {
 
   if (result < now) result.setDate(result.getDate() + 7);
   return result;
+}
+
+// Make value a lower-case.
+function lowercase(value) {
+  return String(value).toLowerCase();
 }
 
 /* Check if string is an event
@@ -406,8 +446,18 @@ function isResultEvent(result) {
       result.meetings ||
       result.appointment ||
       result.appointments ||
+      result.ready ||
+      result.announce ||
+      result.announced ||
+      result.announcement ||
       result.court ||
-      result.delay
+      result.delay ||
+      result.custody ||
+      result.remedy ||
+      result.subscription ||
+      result.alert ||
+      result.matchday ||
+      result.services
     ) {
       return true;
     }
