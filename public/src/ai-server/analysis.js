@@ -34,8 +34,8 @@ async function getEventOnResult(text, result) {
     if (dt < 10) {
       dt = '0' + dt;
     }
-    if (month < 10) {
-      month = '0' + month;
+    if (mont < 10) {
+      mont = '0' + mont;
     }
 
     new_result["Actual Date"] = yr+'-'+ mont+'-'+dt;
