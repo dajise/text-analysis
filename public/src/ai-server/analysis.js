@@ -27,8 +27,22 @@ async function getEventOnResult(text, result) {
     new_result["Event"] = "Event Found";
 
     new_result["YearMonth"] = parseYearMonth(text);
-    new_result["Actual Date"] = actualEventDate;
+    logDate = new Date(actualEventDate);
+    yr=logDate.getFullYear();
+    mont=logDate.getMonth()+1;
+    dt=logDate.getDate()
+    if (dt < 10) {
+      dt = '0' + dt;
+    }
+    if (month < 10) {
+      month = '0' + month;
+    }
 
+    new_result["Actual Date"] = yr+'-'+ mont+'-'+dt;
+    
+    /*
+    new_result["Actual Date"] = actualEventDate;
+    */
     if (!new_result["YearMonth"] && actualEventDate) {
       const datee = new Date(actualEventDate);
       new_result["YearMonth"] =

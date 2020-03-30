@@ -28,7 +28,7 @@ var months = [
 ];
 var nav = ["today", "tomorrow", "yesterday"];
 var weekDays = [
-  "sunday",
+  "sunda;y",
   "monday",
   "tuesday",
   "wednesday",
