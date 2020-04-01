@@ -49,9 +49,10 @@ async function getEventOnResult(text, result) {
         datee.getFullYear() + " " + monthNumToName(datee.getMonth());
     }
 
-    var time = text.match(/[0-9]{1,2}(?:(?::[0-9]{2})|(?: [0-9]{2}))\b/);
-    new_result["Time"] =
-      (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
+    var time = text.match(/[0-9]{1,2}(?:(?::[0-9]{2})|(?: [0-9]{2})|(?:am)|(?:pm))\b/);
+    new_result["Time"] = (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
+     // (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
+     
 
     var hour = text.match(/[0-9]{1,2}(?:(?: hour)|(?: minutes))/);
     //new_result["Duration"] = (hour ? hour + ": at: " : "")
