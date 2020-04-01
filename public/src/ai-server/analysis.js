@@ -53,7 +53,7 @@ async function getEventOnResult(text, result) {
     
     //new_result["Time"] = (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
      // (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
-     var timez = text.match(/[0-9]{1,2}(?:(?::[0-9]{2})|(?: [0-9]{2})|(?:am)|(?:pm))\b/);
+     var timez = text.match(/[0-9]{1,2,3}(?:(?::[0-9]{2})|(?: [0-9]{2})|(?:AM{3})|(?:PM{3}))\b/);
      var time = $(timez).val();
      var hours = Number(time.match(/^(\d+)/)[1]);
      var minutes = Number(time.match(/:(\d+)/)[1]);
