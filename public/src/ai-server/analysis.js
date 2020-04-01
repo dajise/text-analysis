@@ -55,7 +55,7 @@ async function getEventOnResult(text, result) {
     new_result["Time"] =
       (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
 
-    new_result["Duration"] = hour*60;
+    new_result["Duration"] = hour;
 
     let addressParser = parseAddress(text, result.addresss);
     if (!addressParser && result.curAddress) {
