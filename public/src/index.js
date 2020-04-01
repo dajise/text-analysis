@@ -82,6 +82,7 @@ async function jsonToCSV(res, data) {
       { id: "YearMonth", title: "YearMonth" },
       { id: "Actual Date", title: "Actual Date" },
       { id: "Time", title: "Time" },
+      { id: "Duration", title: "Duration" },
       { id: "Address", title: "Address" },
       { id: "Subject", title: "Subject" }
     ]
