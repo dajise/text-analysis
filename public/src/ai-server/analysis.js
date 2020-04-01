@@ -53,8 +53,9 @@ async function getEventOnResult(text, result) {
     var time = text.match(/[0-9]{1,2}(?:(?::[0-9]{2})|(?: [0-9]{2}))\b/);
 
     new_result["Time"] =
-      (hour ? hour + ": at: " : "") +
       (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
+
+    new_result["Duration"] = hour*60;
 
     let addressParser = parseAddress(text, result.addresss);
     if (!addressParser && result.curAddress) {
