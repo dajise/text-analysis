@@ -49,11 +49,26 @@ async function getEventOnResult(text, result) {
         datee.getFullYear() + " " + monthNumToName(datee.getMonth());
     }
 
-    var time = text.match(/[0-9]{1,2}(?:(?::[0-9]{2})|(?: [0-9]{2})|(?:am)|(?:pm))\b/);
-    new_result["Time"] = (time && isStr(time[0]) ? time[0][1] : "");
+    
+    
     //new_result["Time"] = (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
      // (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
-     
+     var timez = text.match(/[0-9]{1,2}(?:(?::[0-9]{2})|(?: [0-9]{2})|(?:am)|(?:pm))\b/);
+     var time = $(timez).val();
+     var hours = Number(time.match(/^(\d+)/)[1]);
+     var minutes = Number(time.match(/:(\d+)/)[1]);
+     var AMPM = time.match(/\s(.*)$/)[1];
+     if(AMPM == "PM" && hours<12) hours = hours+12;
+     if(AMPM == "AM" && hours==12) hours = hours-12;
+     var sHours = hours.toString();
+     var sMinutes = minutes.toString();
+     if(hours<10) sHours = "0" + sHours;
+     if(minutes<10) sMinutes = "0" + sMinutes;
+     alert(sHours + ":" + sMinutes);
+
+     new_result["Time"] = (sHours + ":" + sMinutes);
+
+
 
     var hour = text.match(/[0-9]{1,2}(?:(?: hour)|(?: minutes))/);
     //new_result["Duration"] = (hour ? hour + ": at: " : "")
