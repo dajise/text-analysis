@@ -49,14 +49,13 @@ async function getEventOnResult(text, result) {
         datee.getFullYear() + " " + monthNumToName(datee.getMonth());
     }
 
-    var hour = text.match(/[0-9]{1,2}(?:(?: hour)|(?: minutes))/);
     var time = text.match(/[0-9]{1,2}(?:(?::[0-9]{2})|(?: [0-9]{2}))\b/);
-
     new_result["Time"] =
       (time && isStr(time[0]) ? time[0].replace(/\s+/g, ":") : "");
 
-    new_result["Duration"] = hour;
-
+    var hour = text.match(/[0-9]{1,2}(?:(?: hour)|(?: minutes))/);
+   // new_result["Duration"] = hour;
+    new_result["Duration"] = (hour ? hour + ": at: " : "")
     let addressParser = parseAddress(text, result.addresss);
     if (!addressParser && result.curAddress) {
       addressParser = result.curAddress.country + " " + result.curAddress.city;
